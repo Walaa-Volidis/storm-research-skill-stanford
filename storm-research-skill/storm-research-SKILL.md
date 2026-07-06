@@ -1,6 +1,6 @@
 ---
 name: storm-research
-description: Use when someone asks to run Storm Research, use the storm-research skill, run the STORM method on a topic, says "storm research this" / "storm report on X" / "give me a STORM briefing on X", or wants a multi-perspective, citation-verified HTML research briefing on a topic. Runs a 4-phase pipeline: five expert lenses (Practitioner, Academic, Skeptic, Economist, Historian) -> contradiction map -> synthesized HTML report -> adversarial peer review + primary-source verification. Best for topics where multiple viewpoints and fact-checked claims matter; overkill for a simple factual lookup.
+description: Use when someone asks to create, write, or generate a report, briefing, or research document on any topic, OR asks to run Storm Research / use the storm-research skill / run the STORM method, says "storm research this" / "storm report on X" / "make me a report on X" / "give me a briefing on X", or wants a multi-perspective, citation-verified research report. Produces a polished PDF (rendered from a self-contained HTML source). Runs a 4-phase pipeline: five expert lenses (Practitioner, Academic, Skeptic, Economist, Historian) -> contradiction map -> synthesized report -> adversarial peer review + primary-source verification. Default choice for any report request where multiple viewpoints and fact-checked claims matter; overkill for a simple one-line factual lookup.
 argument-hint: "[topic to research]"
 ---
 
@@ -8,13 +8,13 @@ argument-hint: "[topic to research]"
 
 ## What this does
 
-Turns one topic into a verified, multi-perspective HTML briefing. It simulates five expert lenses on the topic, maps where they contradict each other, synthesizes everything into a single self-contained HTML report, then adversarially peer-reviews its own output and verifies every citation against its primary source before delivering. The output is one HTML file with no blind spots and no unchecked claims.
+Turns one topic into a verified, multi-perspective briefing delivered as a **PDF only**. It simulates five expert lenses on the topic, maps where they contradict each other, synthesizes everything into a self-contained HTML render source, renders that to a print-ready PDF, then adversarially peer-reviews its own output and verifies every citation against its primary source before delivering. The deliverable is a single PDF with no blind spots and no unchecked claims; the intermediate HTML is temporary and discarded. The method follows STORM, adapted from Stanford's STORM project.
 
 Run the full pipeline end to end. Do not shortcut a phase. This is heavier than a quick web lookup; that is the point.
 
 ## Portability
 
-This skill is self-contained. It depends only on built-in Claude Code tools (the `Agent` tool with the built-in `general-purpose` agent, `Write`, and web search/fetch used inside those agents) plus `report-template.html` in this same folder. No external scripts, APIs, paid services, or other skills are required. Drop the folder into any `.claude/skills/` directory and it works.
+This skill is self-contained. It depends only on built-in Claude Code tools (the `Agent` tool with the built-in `general-purpose` agent, `Write`, `Bash`, and web search/fetch used inside those agents) plus `report-template.html` in this same folder. The only external requirement is a **Chromium-based browser (Chrome or Microsoft Edge)** already installed on the machine — used in headless mode to render the HTML to PDF. Both ship by default on Windows/macOS. No paid services, APIs, or other skills are required. Drop the folder into any `.claude/skills/` directory and it works.
 
 ## Phase 0: Scope the topic
 
@@ -52,9 +52,11 @@ Working only from the five briefs, determine (do this inline, no agents):
 
 This map is not a separate deliverable. It is the raw material for the report's findings (supports/challenges), hidden connection, 6th-lens box, and frontier question.
 
-## Phase 3: Synthesize the HTML report
+## Phase 3: Synthesize the report (HTML render source)
 
-1. Read `report-template.html` in this skill folder. Clone it; do not rebuild the CSS.
+The report is delivered as a **PDF only**. The HTML below is an internal render source, not a deliverable.
+
+1. Read `report-template.html` in this skill folder. Clone it; do not rebuild the CSS. It is a modern design: dark hero, Space Grotesk / Inter / JetBrains Mono, violet + teal accent. Keep the `<style>` block and the Stanford STORM credit in the footer verbatim.
 2. Fill every section. Mapping from the phases:
    - **60-second summary** — decision-maker-grade, nuance not headline. Lead with the settled fact, then the contested interpretation.
    - **5 key findings, ranked by reliability** — most important things now known, highest reliability first. Each carries a 1-10 confidence score (set in Phase 4) and Supported-by / Challenged-by chips drawn from the contradiction map.
@@ -64,7 +66,8 @@ This map is not a separate deliverable. It is the raw material for the report's 
    - **Claim safety guide** — assert / caveat / avoid, populated after Phase 4 verification.
    - **Frontier question** — the one question that would change everything.
    - **References** — every citation with a verification-status tag (set in Phase 4).
-3. Write to `storm-reports/{topic-slug}-briefing.html` (relative to the current working directory; create the folder if needed).
+   - Each finding card takes TWO reliability classes: the outer `<div class="finding rl-...">` (colors the left bar) and the inner `<div class="rel ...">` — set both to `high | medhigh | medium | low` for that finding.
+3. Write the working HTML to a **temp path** (the OS temp/scratch dir), e.g. `{temp}/{topic-slug}-briefing.html`. Do NOT write it into `storm-reports/` — that folder holds PDFs only. The PDF is rendered from this temp file in Output after Phase 4 corrections are applied. The HTML is never handed to the user.
 
 ## Phase 4: Adversarial peer review + verification (do not skip)
 
@@ -83,11 +86,23 @@ This is what separates Storm Research from a normal report. Run it before delive
 - Fill the verification banner (`X fabricated, Y corrected, Z demoted`) and the per-citation status tags.
 - Populate the claim safety guide from the verdicts.
 
-## Output
+## Output — PDF only
 
-1. Final deliverable: `storm-reports/{topic-slug}-briefing.html` (the v2, post-verification version).
-2. Open it for the user with the platform's default opener: macOS `open <path>`, Linux `xdg-open <path>`, Windows `start "" <path>` (or PowerShell `Start-Process <path>`). If the OS is unclear, just give the path.
-3. In chat, give: the file path, the verification tally (`N/N checked, X fabricated, Y corrected, Z demoted`), the one universal finding, the frontier question, and the claim safety summary (what is safe to assert vs avoid). Keep it tight.
+The deliverable is a single **PDF**. Only render it **after** Phase 4 corrections are written into the temp HTML, so the PDF is the verified v2.
+
+1. **Render the temp HTML to PDF** with a headless Chromium browser, straight into the deliverable folder: `storm-reports/{topic-slug}-briefing.pdf` (create the folder if needed). **Use ABSOLUTE paths for both the temp input HTML and the output PDF** — Chrome/Edge `--print-to-pdf` silently fails on relative paths ("cannot find the path specified"). Use the first browser found:
+   - **Windows** (Chrome, then Edge as fallback) — full absolute paths:
+     ```
+     & "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless --disable-gpu --no-pdf-header-footer --user-data-dir="C:\temp\storm-chrome" --print-to-pdf="C:\full\path\storm-reports\{topic-slug}-briefing.pdf" "C:\temp\{topic-slug}-briefing.html"
+     ```
+     If Chrome is absent, swap in `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe` with the same flags.
+   - **macOS**: `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu --no-pdf-header-footer --user-data-dir="/tmp/storm-chrome" --print-to-pdf="/abs/storm-reports/{topic-slug}-briefing.pdf" "/abs/tmp/{topic-slug}-briefing.html"`
+   - **Linux**: `google-chrome --headless --disable-gpu --no-pdf-header-footer --user-data-dir="/tmp/storm-chrome" --print-to-pdf="/abs/.../briefing.pdf" "/abs/tmp/briefing.html"`
+   - **Flag notes:** `--no-pdf-header-footer` removes the browser's date/URL margins; **`--user-data-dir=<a temp dir>` is required** — recent Chrome/Edge builds fail with `Missing headless user data directory` without it. The template's `@page` / `@media print` block supplies the dark hero, colored cards, and page breaks. Ignore noisy `GCM` / `sandboxed_unpacker` / `PHONE_REGISTRATION_ERROR` lines; the only line that matters is `NNNNNN bytes written to file ...`. Confirm the `.pdf` exists and is non-trivial (typically >100 KB with the embedded fonts/colors) before proceeding.
+2. **Discard the temp HTML** (delete it, or just leave it in the OS temp dir). `storm-reports/` must contain the PDF only — never ship or reference the HTML.
+3. **If no Chromium browser is available**, say so plainly and, as the only fallback, hand over the HTML so the work isn't lost — but note it is a fallback, not the intended deliverable.
+4. **Final deliverable: `storm-reports/{topic-slug}-briefing.pdf`.** Open it with the platform's default opener: macOS `open <path>`, Linux `xdg-open <path>`, Windows PowerShell `Start-Process <path>`. If the OS is unclear, just give the path.
+5. In chat, give: the PDF file path, the verification tally (`N/N checked, X fabricated, Y corrected, Z demoted`), the one universal finding, the frontier question, and the claim safety summary (what is safe to assert vs avoid). Keep it tight.
 
 ## Notes & guardrails
 
@@ -97,4 +112,6 @@ This is what separates Storm Research from a normal report. Run it before delive
 - **Reliability = evidence quality, not confidence.** Score on the source hierarchy: peer-reviewed causal > official policy/financial data > single commissioned survey > analogy > preprint.
 - **Target the reader, not a default person.** The actionable insight and claim safety guide speak to the role identified in Phase 0. Keep them generic if no role is given.
 - **Cost.** This spawns ~9-11 agents per run. That is expected. Do not fan out wider than five lenses or one verifier per citation cluster.
-- **Design.** Clean white and professional (Montserrat / Roboto Mono, blue accent). Keep the template CSS verbatim. Do not swap in a different visual style.
+- **Design.** Modern editorial: dark plum hero, Space Grotesk display, Inter body, JetBrains Mono labels, violet (`#6d28d9`) + teal (`#0d9488`) accent. Keep the template CSS verbatim, including the `@page` / `@media print` block that makes the PDF paginate cleanly. Do not swap in a different visual style.
+- **PDF is the only deliverable.** Always render and hand over the PDF. The HTML is a temporary render source written to the OS temp dir and discarded — never ship it or leave it in `storm-reports/`. Render only after Phase 4 corrections land so the PDF is the verified version.
+- **Attribution.** The method is STORM, adapted from Stanford's STORM project — keep that credit in the report footer and do not strip it.
