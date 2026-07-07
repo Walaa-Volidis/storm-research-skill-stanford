@@ -8,7 +8,7 @@ argument-hint: "[topic to research]"
 
 ## What this does
 
-Turns one topic into a verified, multi-perspective briefing delivered as a **PDF only**. It simulates five expert lenses on the topic, maps where they contradict each other, synthesizes everything into a self-contained HTML render source, renders that to a print-ready PDF, then adversarially peer-reviews its own output and verifies every citation against its primary source before delivering. The deliverable is a single PDF with no blind spots and no unchecked claims; the intermediate HTML is temporary and discarded. The method follows STORM, adapted from Stanford's STORM project.
+Turns one topic into a verified, multi-perspective briefing delivered as a **PDF only**. It simulates five expert lenses on the topic, maps where they contradict each other, synthesizes everything into a self-contained HTML render source, renders that to a print-ready PDF, then adversarially peer-reviews its own output and verifies every citation against its primary source before delivering. The deliverable is a single PDF with no blind spots and no unchecked claims; the intermediate HTML is temporary and discarded. The multi-perspective method is **inspired by Stanford's STORM** (Shao et al., NAACL 2024); the citation-verification and PDF layers here are additions on top of that idea, not part of the original STORM system.
 
 Run the full pipeline end to end. Do not shortcut a phase. This is heavier than a quick web lookup; that is the point.
 
@@ -114,4 +114,4 @@ The deliverable is a single **PDF**. Only render it **after** Phase 4 correction
 - **Cost.** This spawns ~9-11 agents per run. That is expected. Do not fan out wider than five lenses or one verifier per citation cluster.
 - **Design.** Modern editorial: dark plum hero, Space Grotesk display, Inter body, JetBrains Mono labels, violet (`#6d28d9`) + teal (`#0d9488`) accent. Keep the template CSS verbatim, including the `@page` / `@media print` block that makes the PDF paginate cleanly. Do not swap in a different visual style.
 - **PDF is the only deliverable.** Always render and hand over the PDF. The HTML is a temporary render source written to the OS temp dir and discarded — never ship it or leave it in `storm-reports/`. Render only after Phase 4 corrections land so the PDF is the verified version.
-- **Attribution.** The method is STORM, adapted from Stanford's STORM project — keep that credit in the report footer and do not strip it.
+- **Attribution.** The multi-perspective method is **inspired by** Stanford's STORM (Shao et al., NAACL 2024) — keep that credit in the report footer and do not strip it. Do not claim STORM's published benchmark numbers (e.g. "25% more organized") for *this* skill: those measured Stanford's own system in a human eval, not this five-lens/PDF adaptation. Credit the idea; don't borrow the scores.
