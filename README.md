@@ -50,13 +50,6 @@ No paid services, APIs, GitHub setup, or other skills required.
 - `storm-research/report-template.html` — the PDF design template (modern editorial: dark hero, Space Grotesk / Inter / JetBrains Mono, violet + teal). Rendered to PDF; never shipped as HTML.
 - `storm-reports/` — generated PDF briefings.
 
-## A note on honesty
-
-This skill's own rule is that it never ships an unverified claim — so two things about *it* stay honest too:
-
-- It is **inspired by** STORM, not a port of Stanford's codebase.
-- STORM's published benchmark figures (e.g. "25% more organized") measured **Stanford's system** in a human evaluation. They are **not** claims about this five-lens/PDF adaptation. Credit the idea; don't borrow the scores.
-
 ## Credit
 
 - STORM (Stanford OVAL Lab): https://storm.genie.stanford.edu · https://github.com/stanford-oval/storm
