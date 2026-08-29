@@ -164,17 +164,3 @@ The multi-perspective method is inspired by Stanford's **STORM**:
 - Built specifically as a Claude Code skill, using its native agent and tool model
 
 STORM's published benchmark results measure Stanford's system, not this one, and are not claimed here.
-
----
-
-## Repository Structure
-
-```
-storm-research/
-  SKILL.md              the pipeline, lens prompts, and guardrails
-  report-template.html  the PDF design template
-docs/                   report preview images used in this README
-examples/               a full generated briefing
-```
-
----
