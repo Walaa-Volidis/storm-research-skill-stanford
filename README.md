@@ -178,7 +178,3 @@ examples/               a full generated briefing
 ```
 
 ---
-
-## License
-
-No license file is currently included in this repository. Without one, default copyright applies and others have no explicit permission to reuse or modify the code — adding a `LICENSE` file (MIT is the usual choice for a skill like this) is worth doing before promoting the project publicly.
