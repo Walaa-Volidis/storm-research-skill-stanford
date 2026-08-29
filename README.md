@@ -148,13 +148,13 @@ Worth being straight about:
 
 ## Inspiration
 
-The multi-perspective method is inspired by Stanford's **STORM**:
+The five-lens prompt structure — Practitioner, Academic, Skeptic, Economist, Historian, plus the scan → contradiction-map → synthesis → peer-review flow — is directly adapted from a workflow shared by Nav ([@heynavtoor](TWEET_URL_HERE)), who built it as a copy-paste way to run Stanford OVAL Lab's STORM method inside a chat window:
 
 > Shao et al., *Assisting in Writing Wikipedia-like Articles From Scratch with Large Language Models*, NAACL 2024 — [OVAL Lab, Stanford University](https://github.com/stanford-oval/storm) · [storm.genie.stanford.edu](https://storm.genie.stanford.edu)
 
-**This project is not Stanford's STORM and is not affiliated with it.** It borrows one idea — that good research comes from multiple perspectives interrogating a topic rather than a single retrieval pass — and builds something different around it:
+**This project is not Stanford's STORM and is not affiliated with it.** Stanford's actual system uses retrieval-augmented, simulated-conversation multi-agent generation to write Wikipedia-style articles — a different architecture from the five fixed lenses used here. This skill automates Nav's prompt workflow into a Claude Code skill and adds:
 
-- Adversarial primary-source verification with fabrication detection, which STORM does not do
+- Adversarial primary-source verification with fabrication detection, which neither the original prompts nor Stanford's STORM do
 - Evidence-tier confidence scoring and a claim safety guide
 - A designed PDF report as the deliverable
 - Built specifically as a Claude Code skill, using its native agent and tool model
