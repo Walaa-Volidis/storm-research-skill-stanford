@@ -1,6 +1,6 @@
 ---
 name: storm-research
-description: Use when someone asks to create, write, or generate a report, briefing, or research document on any topic, OR asks to run Storm Research / use the storm-research skill / run the STORM method, says "storm research this" / "storm report on X" / "make me a report on X" / "give me a briefing on X", or wants a multi-perspective, citation-verified research report. Produces a polished PDF (rendered from a self-contained HTML source). Runs a 4-phase pipeline: five expert lenses (Practitioner, Academic, Skeptic, Economist, Historian) -> contradiction map -> synthesized report -> adversarial peer review + primary-source verification. Default choice for any report request where multiple viewpoints and fact-checked claims matter; overkill for a simple one-line factual lookup.
+description: Use when someone asks to create, write, or generate a report, briefing, deep dive, or evidence review on any topic, OR asks to run Storm Research / use the storm-research skill / run the STORM method, says "storm research this" / "storm report on X" / "make me a report on X" / "give me a briefing on X". Also use when a question needs multiple expert viewpoints weighed against each other, when claims must be checked against primary sources before being trusted, or when the user wants to know where credible sources disagree. Overkill for a simple one-line factual lookup.
 argument-hint: "[topic to research]"
 ---
 
@@ -21,12 +21,25 @@ This skill is self-contained. It depends only on built-in Claude Code tools (the
 1. If `$ARGUMENTS` has the topic, use it. Otherwise ask what to research.
 2. State your interpretation of the topic in one line and proceed. Only ask a clarifying question if the topic is genuinely ambiguous in a way that changes the research. Default to proceeding.
 3. Identify the **reader's role** so the actionable section can target it. Infer it from the topic and any stated context; if unclear, ask in one line, or default to "a practitioner or decision-maker in this field."
-4. Derive a kebab-case `topic-slug` from the topic for the filename.
-5. Tell the user the pipeline is running (5 lenses, then verify). One line.
+4. Derive a kebab-case `topic-slug` from the topic, and append the current date: `{topic-slug}-{YYYY-MM-DD}`. Re-running the same topic must never silently overwrite an earlier briefing.
+5. **Preflight the renderer now, not at the end.** Check that a Chromium-based browser exists (see Output for paths). This costs two seconds and prevents spending ~10 agents only to discover the PDF cannot be produced. If none is found, tell the user up front that the run will end in HTML rather than PDF, and ask whether to continue.
+6. Tell the user the pipeline is running (5 lenses, then verify). One line.
+
+## Phase 0.5: Choose the five lenses (inline, ~20 seconds)
+
+STORM's actual contribution is that perspectives are **derived from the topic**, not fixed in advance. Do the same here before spawning anything.
+
+Ask: *which five viewpoints would a well-run panel on THIS topic need?* Write them down in one line each. Then compare against the default panel below:
+
+- **Default panel (use as-is when it fits):** Practitioner, Academic, Skeptic, Economist, Historian. This fits most technology, business, and market topics.
+- **Substitute when the topic demands it.** A clinical topic wants a Clinician and an Ethicist; a policy topic wants an affected-community lens and a regulator; an engineering trade-off wants an Operator/SRE who carries the pager. Swap in at most three; always keep the **Skeptic** and at least one evidence-grade lens (Academic or equivalent).
+- State the chosen panel in one line in chat, and record it in the report's methodology note.
+
+A substituted lens uses the SAME return contract as the defaults below: core position in 2 sentences, 3-5 evidence bullets each with a concrete data point and URL, one lens-unique insight, under 400 words.
 
 ## Phase 1: Five expert lenses (parallel agents)
 
-Spawn **five `general-purpose` agents in a single message** so they run concurrently. Each gets the SAME topic framing plus its own lens. Use these exact prompts, substituting `{TOPIC}` and a one-line `{TOPIC_FRAME}` (your Phase 0 interpretation):
+Spawn **five `general-purpose` agents in a single message** so they run concurrently. Each gets the SAME topic framing plus its own lens. Use these exact prompts for the default panel, substituting `{TOPIC}` and a one-line `{TOPIC_FRAME}` (your Phase 0 interpretation); for any lens swapped in at Phase 0.5, keep the identical structure and return contract:
 
 **1. THE PRACTITIONER** — `You are THE PRACTITIONER for: {TOPIC} ({TOPIC_FRAME}). You work with this daily. Do real web research (prioritize recent sources, case studies, practitioner threads, operator data). Surface the GAP between what hands-on operators know and what academics/pundits miss, and the practical realities (workflow friction, what actually works, where it breaks) that get ignored. Return EXACTLY: 1) CORE POSITION in 2 sentences. 2) STRONGEST EVIDENCE, 3-5 bullets each with a concrete data point/case/named source + URL. 3) THE ONE THING only a practitioner would say. Cite real sources with URLs. Under 400 words.`
 
@@ -48,7 +61,7 @@ Working only from the five briefs, determine (do this inline, no agents):
 2. **Strongest vs weakest evidence** — which lens is best-supported (rank: peer-reviewed causal > official data > anecdote/analogy) and which is weakest, with why.
 3. **The resolving question** — the single empirical question that would settle the biggest contradiction.
 4. **Universal agreement** — what every lens confirms, even opponents. This is the likely-true load-bearing finding.
-5. **The blind spot** — what NO lens addressed. This becomes the "missing 6th lens" and feeds the Frontier Question.
+5. **The blind spot** — what NO lens addressed. This becomes the "missing 6th lens" and feeds the Frontier Question. If the panel genuinely covered the ground, say that plainly instead of manufacturing a gap — an invented blind spot is worse than none.
 
 This map is not a separate deliverable. It is the raw material for the report's findings (supports/challenges), hidden connection, 6th-lens box, and frontier question.
 
@@ -60,7 +73,7 @@ The report is delivered as a **PDF only**. The HTML below is an internal render 
 2. Fill every section. Mapping from the phases:
    - **60-second summary** — decision-maker-grade, nuance not headline. Lead with the settled fact, then the contested interpretation.
    - **5 key findings, ranked by reliability** — most important things now known, highest reliability first. Each carries a 1-10 confidence score (set in Phase 4) and Supported-by / Challenged-by chips drawn from the contradiction map.
-   - **Hidden connection** — the non-obvious link from Phase 2 that only appears across all five lenses.
+   - **Hidden connection** — the non-obvious link from Phase 2 that only appears across all five lenses. **This slot is optional, not mandatory.** If no genuine cross-lens connection exists, write that none emerged and why. A truthful "none found" beats a manufactured insight, and manufacturing one here is the most likely way this report becomes wrong.
    - **Key assumption / missing 6th lens** — the blind spot from Phase 2, framed as the lens that could change the conclusions.
    - **Actionable insight** — 3-6 specific moves for the reader's role identified in Phase 0. Specific, not abstract.
    - **Claim safety guide** — assert / caveat / avoid, populated after Phase 4 verification.
@@ -73,17 +86,17 @@ The report is delivered as a **PDF only**. The HTML below is an internal render 
 
 This is what separates Storm Research from a normal report. Run it before delivering.
 
-**4a. Self-review (inline).** Score each of the 5 findings 1-10 for reliability and justify. Identify the weakest link and what would verify it. Run a bias check (which lens dominated the synthesis, what got underweighted). Name the missing 6th perspective. Assign an honest overall grade.
+**4a. Self-review (inline).** Score each of the 5 findings 1-10 for reliability and justify. **Anchor the score to the evidence tier, do not free-score it:** 9-10 = replicated peer-reviewed causal evidence; 7-8 = single peer-reviewed study or official/audited data; 5-6 = credible industry data, named case studies, or a single commissioned survey; 3-4 = preprint, vendor-published claim, or reasoning by analogy; 1-2 = anecdote or contested assertion. A finding cannot score above the tier of its best source. Identify the weakest link and what would verify it. Run a bias check (which lens dominated the synthesis, what got underweighted). Name the missing 6th perspective. Assign an honest overall grade.
 
 **4b. Verify every citation (parallel agents).** Spawn `general-purpose` agents in one message, one per distinct citation cluster (group related claims; ~4-6 agents). Each agent prompt:
 
-`Independently verify a citation against its PRIMARY source. Be skeptical; do not trust secondary blog summaries. CLAIM: {claim + cited figure + named source}. Find the actual primary source. Confirm or correct: exact title/authors/venue/year/URL, the real figure or effect size as published, sample/method and any author-stated limits, and peer-review status (published vs preprint). For any contested claim, find the strongest credible counter-source. Return: VERDICT = CONFIRMED / PARTIALLY CONFIRMED (list corrections) / UNVERIFIED / FALSE, then the corrected one-line citation, then 2-4 bullets of specifics with the primary URL. Under 280 words.`
+`Your job is to REFUTE this citation, not to confirm it. Assume it is wrong until the primary source proves otherwise, and default to UNVERIFIED unless you actually reach the primary source and see the claim in it. Do not trust secondary blog summaries, press releases, or the citing article itself. CLAIM: {claim + cited figure + named source}. Find the actual primary source. Confirm or correct: exact title/authors/venue/year/URL, the real figure or effect size as published, sample/method and any author-stated limits, and peer-review status (published vs preprint). Actively search for the strongest credible source that CONTRADICTS this claim, and report it even if the claim otherwise checks out. Return: VERDICT = CONFIRMED / PARTIALLY CONFIRMED (list corrections) / UNVERIFIED / FALSE, then the corrected one-line citation, then 2-4 bullets of specifics with the primary URL. Reporting that you could not verify something is a successful outcome, not a failure. Under 280 words.`
 
 **4c. Apply corrections.** Edit the report:
 - Fix any wrong figures, titles, dates, or mischaracterizations.
 - Downgrade confidence scores where evidence turned out thin; demote preprints and contested claims into the "Contested signal" sidebar.
 - Re-attribute single-survey or commissioned stats honestly.
-- Fill the verification banner (`X fabricated, Y corrected, Z demoted`) and the per-citation status tags.
+- Fill the verification banner (`X fabricated, Y corrected, Z demoted`) and the per-citation status tags. **The banner reports what happened; it is not a scoreboard to fill.** `0 fabricated, 0 corrected` is a good and reportable outcome — never invent or inflate a correction to make the pass look rigorous. Equally, never suppress a real one.
 - Populate the claim safety guide from the verdicts.
 
 ## Output — PDF only
