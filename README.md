@@ -118,10 +118,6 @@ cp -r storm-research <your-project>/.claude/skills/
 
 The folder must contain both `SKILL.md` and `report-template.html`.
 
-### Cost
-
-A full run spawns roughly **9–11 agents** — five lenses plus one verifier per citation cluster. That's the intended trade: it's deliberately heavier than a chat answer, and it's overkill for a quick factual lookup.
-
 ---
 
 ## Example Usage
