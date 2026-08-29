@@ -80,7 +80,7 @@ The report is delivered as a **PDF only**. The HTML below is an internal render 
    - **Frontier question** — the one question that would change everything.
    - **References** — every citation with a verification-status tag (set in Phase 4).
    - Each finding card takes TWO reliability classes: the outer `<div class="finding rl-...">` (colors the left bar) and the inner `<div class="rel ...">` — set both to `high | medhigh | medium | low` for that finding.
-3. Write the working HTML to a **temp path** (the OS temp/scratch dir), e.g. `{temp}/{topic-slug}-briefing.html`. Do NOT write it into `storm-reports/` — that folder holds PDFs only. The PDF is rendered from this temp file in Output after Phase 4 corrections are applied. The HTML is never handed to the user.
+3. Write the working HTML to a **temp path** (the OS temp/scratch dir), e.g. `{temp}/{topic-slug}-{YYYY-MM-DD}-briefing.html`. Do NOT write it into `storm-reports/` — that folder holds PDFs only. The PDF is rendered from this temp file in Output after Phase 4 corrections are applied. The HTML is never handed to the user.
 
 ## Phase 4: Adversarial peer review + verification (do not skip)
 
@@ -103,18 +103,18 @@ This is what separates Storm Research from a normal report. Run it before delive
 
 The deliverable is a single **PDF**. Only render it **after** Phase 4 corrections are written into the temp HTML, so the PDF is the verified v2.
 
-1. **Render the temp HTML to PDF** with a headless Chromium browser, straight into the deliverable folder: `storm-reports/{topic-slug}-briefing.pdf` (create the folder if needed). **Use ABSOLUTE paths for both the temp input HTML and the output PDF** — Chrome/Edge `--print-to-pdf` silently fails on relative paths ("cannot find the path specified"). Use the first browser found:
+1. **Render the temp HTML to PDF** with a headless Chromium browser, straight into the deliverable folder: `storm-reports/{topic-slug}-{YYYY-MM-DD}-briefing.pdf` (create the folder if needed). **Use ABSOLUTE paths for both the temp input HTML and the output PDF** — Chrome/Edge `--print-to-pdf` silently fails on relative paths ("cannot find the path specified"). Use the first browser found:
    - **Windows** (Chrome, then Edge as fallback) — full absolute paths:
      ```
-     & "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless --disable-gpu --no-pdf-header-footer --user-data-dir="C:\temp\storm-chrome" --print-to-pdf="C:\full\path\storm-reports\{topic-slug}-briefing.pdf" "C:\temp\{topic-slug}-briefing.html"
+     & "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless --disable-gpu --no-pdf-header-footer --user-data-dir="C:\temp\storm-chrome" --print-to-pdf="C:\full\path\storm-reports\{topic-slug}-{YYYY-MM-DD}-briefing.pdf" "C:\temp\{topic-slug}-{YYYY-MM-DD}-briefing.html"
      ```
      If Chrome is absent, swap in `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe` with the same flags.
-   - **macOS**: `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu --no-pdf-header-footer --user-data-dir="/tmp/storm-chrome" --print-to-pdf="/abs/storm-reports/{topic-slug}-briefing.pdf" "/abs/tmp/{topic-slug}-briefing.html"`
+   - **macOS**: `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu --no-pdf-header-footer --user-data-dir="/tmp/storm-chrome" --print-to-pdf="/abs/storm-reports/{topic-slug}-{YYYY-MM-DD}-briefing.pdf" "/abs/tmp/{topic-slug}-{YYYY-MM-DD}-briefing.html"`
    - **Linux**: `google-chrome --headless --disable-gpu --no-pdf-header-footer --user-data-dir="/tmp/storm-chrome" --print-to-pdf="/abs/.../briefing.pdf" "/abs/tmp/briefing.html"`
    - **Flag notes:** `--no-pdf-header-footer` removes the browser's date/URL margins; **`--user-data-dir=<a temp dir>` is required** — recent Chrome/Edge builds fail with `Missing headless user data directory` without it. The template's `@page` / `@media print` block supplies the dark hero, colored cards, and page breaks. Ignore noisy `GCM` / `sandboxed_unpacker` / `PHONE_REGISTRATION_ERROR` lines; the only line that matters is `NNNNNN bytes written to file ...`. Confirm the `.pdf` exists and is non-trivial (typically >100 KB with the embedded fonts/colors) before proceeding.
 2. **Discard the temp HTML** (delete it, or just leave it in the OS temp dir). `storm-reports/` must contain the PDF only — never ship or reference the HTML.
 3. **If no Chromium browser is available**, say so plainly and, as the only fallback, hand over the HTML so the work isn't lost — but note it is a fallback, not the intended deliverable.
-4. **Final deliverable: `storm-reports/{topic-slug}-briefing.pdf`.** Open it with the platform's default opener: macOS `open <path>`, Linux `xdg-open <path>`, Windows PowerShell `Start-Process <path>`. If the OS is unclear, just give the path.
+4. **Final deliverable: `storm-reports/{topic-slug}-{YYYY-MM-DD}-briefing.pdf`.** Open it with the platform's default opener: macOS `open <path>`, Linux `xdg-open <path>`, Windows PowerShell `Start-Process <path>`. If the OS is unclear, just give the path.
 5. In chat, give: the PDF file path, the verification tally (`N/N checked, X fabricated, Y corrected, Z demoted`), the one universal finding, the frontier question, and the claim safety summary (what is safe to assert vs avoid). Keep it tight.
 
 ## Notes & guardrails
