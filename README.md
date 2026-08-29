@@ -148,7 +148,7 @@ Worth being straight about:
 
 ## Inspiration
 
-The five-lens prompt structure — Practitioner, Academic, Skeptic, Economist, Historian, plus the scan → contradiction-map → synthesis → peer-review flow — is directly adapted from a workflow shared by Nav ([@heynavtoor](TWEET_URL_HERE)), who built it as a copy-paste way to run Stanford OVAL Lab's STORM method inside a chat window:
+The five-lens prompt structure — Practitioner, Academic, Skeptic, Economist, Historian, plus the scan → contradiction-map → synthesis → peer-review flow — is directly adapted from a workflow shared by Nav ([@heynavtoor](https://x.com/heynavtoor/status/2067194761446920264)), who built it as a copy-paste way to run Stanford OVAL Lab's STORM method inside a chat window:
 
 > Shao et al., *Assisting in Writing Wikipedia-like Articles From Scratch with Large Language Models*, NAACL 2024 — [OVAL Lab, Stanford University](https://github.com/stanford-oval/storm) · [storm.genie.stanford.edu](https://storm.genie.stanford.edu)
 
